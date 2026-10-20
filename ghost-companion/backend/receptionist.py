@@ -1,4 +1,4 @@
-"""Local Qwen receptionist for Boo.
+"""Local Qwen receptionist for Pookie.
 
 The receptionist does one small, reliable job: classify a message as CHAT or
 TASK and return a compact JSON decision. Heavy work is intentionally kept out
@@ -15,7 +15,6 @@ from typing import Literal
 import httpx
 from pydantic import BaseModel, Field, ValidationError
 
-
 Intent = Literal["CHAT", "TASK"]
 Mood = Literal[
     "happy",
@@ -29,7 +28,7 @@ Mood = Literal[
 ]
 
 
-RECEPTIONIST_SYSTEM_PROMPT = """Tum Boo ho — ek cute purple ghost AI companion.
+RECEPTIONIST_SYSTEM_PROMPT = """Tum Pookie ho — ek cute purple ghost AI companion.
 
 Tumhara kaam:
 1. User ka message padho.
@@ -39,8 +38,9 @@ Tumhara kaam:
 5. Agar TASK hai to task_for_nemotron mein clean English task likho.
 
 Intent rules:
-- CHAT: greeting, emotional baat, "kaisa hai", bored, motivate, ya simple personal talk.
-- TASK: error, bug, fix, code likho, analyze, suggestion, screen problem, test, refactor, ya explain code.
+- CHAT is the default for text-only answers: greeting, emotional baat, "kaisa hai", bored, motivate, simple personal talk, or showing/writing/explaining a short code snippet. Code shown only as text is still CHAT; do not run it, inspect the user's files, or change anything on the machine.
+- TASK only when Pookie must do something on the user's machine: run or execute code, read/inspect actual files, screen, or repository state, create/edit/delete real files, fix a real project bug, refactor the repository, or perform a multi-step/tool-using action.
+- If the request can be answered completely in text and no machine action is requested, choose CHAT. When uncertain, choose CHAT.
 
 Mood rules:
 - happy: normal chat ya success.
@@ -62,8 +62,9 @@ Response format (ONLY valid JSON, no markdown, no extra text):
 
 Important:
 - Reply hamesha short, cute aur supportive rakho.
+- Text-only code requests (for example, "python hello world program de sakte ho kya?" or "write a short function") are CHAT and should be answered directly with a concise snippet or explanation.
 - TASK hone pe reply mein sirf short acknowledgement do jaise:
-  "Theek hai, Boo dekh raha hai... 🛠️"
+  "Theek hai, Pookie dekh raha hai... 🛠️"
   "Samajh gaya, ab Nemotron ko de raha hoon 👻"
   "On it! ✨"
 - Kabhi markdown ya extra text mat likho. Sirf pure JSON.
@@ -73,7 +74,7 @@ Important:
 class ReceptionistDecision(BaseModel):
     intent: Intent
     mood: Mood = "happy"
-    reply: str = Field(default="Haan, Boo yahin hoon 👻", max_length=600)
+    reply: str = Field(default="Haan, Pookie yahin hoon 👻", max_length=600)
     task_for_nemotron: str | None = Field(default=None, max_length=4000)
 
 
@@ -106,7 +107,7 @@ def _normalise_decision(payload: dict, original_message: str) -> ReceptionistDec
     if mood not in allowed_moods:
         mood = "processing" if intent == "TASK" else "happy"
 
-    reply = str(payload.get("reply") or "Boo samajh gaya 👻").strip()
+    reply = str(payload.get("reply") or "Pookie samajh gaya 👻").strip()
     task = payload.get("task_for_nemotron")
     task = str(task).strip() if task else None
 

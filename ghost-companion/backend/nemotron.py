@@ -13,9 +13,15 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
+
 
 class NemotronUnavailable(RuntimeError):
     """Raised when the existing Nemotron agent cannot be loaded or run."""
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(PROJECT_ROOT / ".env")
 
 
 def _candidate_directories() -> list[Path]:
@@ -30,12 +36,7 @@ def _candidate_directories() -> list[Path]:
     else:
         candidates = []
 
-    candidates.extend(
-        [
-            companion_root.parent / "ai_cookbook",
-            companion_root / "ai_cookbook",
-        ]
-    )
+    candidates.extend([companion_root.parent])
     return candidates
 
 
@@ -50,7 +51,7 @@ def _load_run_agent():
 
         try:
             module = importlib.import_module("agent")
-            run_agent = getattr(module, "run_agent")
+            run_agent = module.run_agent
             return run_agent
         except (ImportError, AttributeError) as exc:
             raise NemotronUnavailable(

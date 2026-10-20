@@ -50,7 +50,7 @@ def _load_run_agent():
 
         try:
             module = importlib.import_module("agent")
-            run_agent = getattr(module, "run_agent")
+            run_agent = module.run_agent
             return run_agent
         except (ImportError, AttributeError) as exc:
             raise NemotronUnavailable(

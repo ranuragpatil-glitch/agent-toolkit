@@ -1,0 +1,9 @@
+{
+  "service": "ghost-companion",
+  "environment": "test",
+  "features": ["chat-routing", "feedback-capture"],
+  "timeouts": {
+    "request_seconds": 30,
+    "ollama_seconds": 20
+  }
+}

@@ -58,7 +58,7 @@ export function GhostAvatar({ mood = "happy", size = "md", floating = false }) {
           ? { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
           : { duration: 0.3 }
       }
-      title={`Boo is ${mood}`}
+      title={`Pookie is ${mood}`}
     >
       {emoji}
     </motion.div>

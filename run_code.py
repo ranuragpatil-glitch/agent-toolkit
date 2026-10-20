@@ -1,9 +1,12 @@
 # run_code.py
+import shlex
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from RestrictedPython import compile_restricted, safe_globals, safe_builtins
+
+from RestrictedPython import compile_restricted, safe_builtins
+
 from config import SANDBOX_TIMEOUT, SHELL_ALLOWLIST, WORKSPACE
 
 
@@ -55,12 +58,17 @@ def run_python_subprocess(code: str, timeout: int = SANDBOX_TIMEOUT) -> dict:
 # ---------- Safe Shell ----------
 def safe_shell(cmd: str) -> dict:
     """Allowlisted shell command chalao."""
-    binary = cmd.strip().split()[0] if cmd.strip() else ""
+    try:
+        argv = shlex.split(cmd)
+    except ValueError as e:
+        return {"ok": False, "error": f"Invalid command: {e}"}
+
+    binary = argv[0] if argv else ""
     if binary not in SHELL_ALLOWLIST:
         return {"ok": False, "error": f"Command '{binary}' not allowed"}
     try:
         r = subprocess.run(
-            cmd, shell=True, cwd=WORKSPACE,
+            argv, shell=False, cwd=WORKSPACE,
             capture_output=True, text=True, timeout=SANDBOX_TIMEOUT,
         )
         return {

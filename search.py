@@ -1,5 +1,6 @@
 # search.py
 from ddgs import DDGS
+
 from config import MAX_SEARCH_RESULTS
 
 

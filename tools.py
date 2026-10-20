@@ -1,9 +1,8 @@
 # tools.py
-from filesystem import read_file, write_file, edit_file, list_files
+from filesystem import edit_file, list_files, read_file, write_file
+from memory import index_code_file, recall, remember, search_code
 from run_code import run_code, safe_shell
-from search import web_search, fetch_page
-from memory import remember, recall, index_code_file, search_code
-
+from search import fetch_page, web_search
 
 # ---------- Tool Registry ----------
 TOOL_REGISTRY = {

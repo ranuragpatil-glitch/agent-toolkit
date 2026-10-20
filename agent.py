@@ -1,16 +1,22 @@
 # agent.py
-from typing import TypedDict, Literal, Annotated
 import operator
+from typing import Annotated, Literal, TypedDict
 
-from langgraph.graph import StateGraph, END
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
+from langgraph.graph import END, StateGraph
 from pydantic import BaseModel, Field
 
-from config import NVIDIA_API_KEY, NVIDIA_BASE_URL, NVIDIA_MODEL, TEMPERATURE, MAX_RETRIES 
-from prompts import PLANNER_PROMPT, CODER_PROMPT, TOOL_ROUTER_PROMPT, REFLECT_PROMPT
-from utils import extract_code_block, format_errors, truncate
+from config import (
+    MAX_RETRIES,
+    NVIDIA_API_KEY,
+    NVIDIA_BASE_URL,
+    NVIDIA_MODEL,
+    TEMPERATURE,
+)
+from prompts import CODER_PROMPT, PLANNER_PROMPT, TOOL_ROUTER_PROMPT
 from tools import execute_tool, list_tools
+from utils import extract_code_block, format_errors, truncate
 
 
 # ---------- State ----------
@@ -32,6 +38,8 @@ llm = ChatOpenAI(
     api_key=NVIDIA_API_KEY,
     temperature=TEMPERATURE,
     max_tokens=4096,
+    timeout=180,
+    extra_body={"chat_template_kwargs": {"enable_thinking": False}},
 )
 
 
@@ -53,6 +61,25 @@ class ToolCall(BaseModel):
 class ToolPlan(BaseModel):
     calls: list[ToolCall] = Field(default_factory=list)
     final_answer: str | None = None
+
+
+# ---------- Helpers ----------
+def _looks_like_path(text: str) -> bool:
+    """True agar text code nahi, balki file path ya 'python file.py' jaisa command lagta hai."""
+    text = text.strip()
+    if not text or "\n" in text:
+        return False
+    if text.startswith(("python ", "python3 ", "py ")):
+        return True
+    return " " not in text and text.endswith(".py")
+
+def _error_text(res: dict) -> str:
+    """Tool result se sabse kaam ka error message nikalo."""
+    err = res.get("error")
+    if err:
+        return str(err)
+    stderr_lines = (res.get("stderr") or "").strip().splitlines()
+    return stderr_lines[-1] if stderr_lines else "unknown"
 
 
 # ---------- Nodes ----------
@@ -84,7 +111,6 @@ def coder_node(state: AgentState) -> dict:
 
 
 def tool_router_node(state: AgentState) -> dict:
-
     """Step 3: Decide + execute tools."""
     structured = llm.with_structured_output(ToolPlan, method="json_schema")
     decision = structured.invoke([
@@ -105,6 +131,7 @@ def tool_router_node(state: AgentState) -> dict:
             args={"code": state["code"]},
             reason="auto-injected: task mentioned tests, model skipped run_code",
         ))
+
     # ---------- ACTUAL TOOL EXECUTION ----------
     results = []
     errors = []
@@ -114,19 +141,19 @@ def tool_router_node(state: AgentState) -> dict:
         tool_name = call.tool
         args = dict(call.args)
 
-        # Model kabhi-kabhi reason ko args mein daal deta hai — hatao
+        # Model kabhi-kabhi reason ko args mein daal deta hai - hatao
         args.pop("reason", None)
 
         # write_file: content missing ho to state ka code use karo
         if tool_name == "write_file" and not args.get("content"):
             args["content"] = state["code"]
 
-        # run_code: pehle read_file hua ho to uska content, warna state ka code
-        if tool_name == "run_code" and "code" not in args:
-            args["code"] = last_read_content or state["code"]
-
-        # run_code ke liye sirf allowed keys bhejo (code, mode)
         if tool_name == "run_code":
+            # code missing ho ya file path jaisa ho to read_file ka content / state ka code use karo
+            code_arg = args.get("code") or ""
+            if not code_arg.strip() or _looks_like_path(code_arg):
+                args["code"] = last_read_content or state["code"]
+            # sirf allowed keys bhejo (code, mode)
             args = {k: v for k, v in args.items() if k in ("code", "mode")}
 
         res = execute_tool(tool_name, args)
@@ -140,8 +167,10 @@ def tool_router_node(state: AgentState) -> dict:
             "reason": call.reason,
             "result": res,
         })
-        if not res.get("ok", False):
-            errors.append(f"{tool_name} failed: {res.get('error', 'unknown')}")
+
+        # Sirf failed tool ka error judega
+        if not res.get("ok"):
+            errors.append(f"{tool_name} failed: {_error_text(res)}")
 
     return {
         "tool_calls": [c.model_dump() for c in decision.calls],

@@ -1,4 +1,4 @@
-"""Boo's FastAPI companion layer."""
+"""Pookie's FastAPI companion layer."""
 
 from __future__ import annotations
 
@@ -11,7 +11,6 @@ from pydantic import BaseModel, Field
 
 from nemotron import NemotronUnavailable, run_nemotron
 from receptionist import ReceptionistError, classify_message
-
 
 Mood = Literal[
     "happy",
@@ -43,7 +42,7 @@ def _origins() -> list[str]:
     return [origin.strip() for origin in configured.split(",") if origin.strip()]
 
 
-app = FastAPI(title="Boo Ghost Companion API", version="0.2.0")
+app = FastAPI(title="Pookie Ghost Companion API", version="0.2.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins(),
@@ -61,7 +60,6 @@ def _short_error(message: str) -> str:
 def _format_nemotron_success(result: dict) -> str:
     """Extract useful output from Nemotron agent result."""
     code = (result.get("code") or "").strip()
-    errors = result.get("errors") or []
     tool_calls = result.get("tool_calls") or []
 
     if code:
@@ -73,7 +71,7 @@ def _format_nemotron_success(result: dict) -> str:
     if tool_calls:
         return f"Task complete ✨\n\nNemotron ne {len(tool_calls)} tools use kiye. Kaam ho gaya!"
 
-    return "Task complete ✨ Boo proud hai — Nemotron ne kaam handle kar diya."
+    return "Task complete ✨ Pookie proud hai — Nemotron ne kaam handle kar diya."
 
 
 @app.get("/health")
@@ -88,9 +86,9 @@ def chat(req: ChatRequest) -> ChatResponse:
     # ---------- 1. Receptionist (local Qwen) ----------
     try:
         decision = classify_message(req.message)
-    except ReceptionistError as exc:
+    except ReceptionistError:
         return ChatResponse(
-            reply="Boo ka local brain abhi connect nahi ho pa raha 😵 Ollama check kar lo.",
+            reply="Pookie ka local brain abhi connect nahi ho pa raha 😵 Ollama check kar lo.",
             mood="concerned",
             status="error",
             source="qwen",

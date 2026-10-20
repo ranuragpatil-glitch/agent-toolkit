@@ -1,9 +1,10 @@
 # main.py
 import argparse
 import json
+
 from agent import run_agent
-from tools import list_tools
 from memory import recall
+from tools import list_tools
 
 
 def print_result(result: dict):
