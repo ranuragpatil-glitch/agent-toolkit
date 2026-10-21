@@ -1,4 +1,4 @@
-"""Run every isolated ai_cookbook tool test sequentially and summarize results."""
+"""Run every isolated agent-toolkit tool test sequentially and summarize results."""
 
 from __future__ import annotations
 

@@ -17,3 +17,5 @@ workspace/tool_tests/runtime/
 ghost-companion/frontend/release/
 ghost-companion/frontend/eng.traineddata
 ghost-companion/backend/feedback_log.jsonl
+release/
+workspace/workspace/

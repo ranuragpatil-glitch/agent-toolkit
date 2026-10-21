@@ -1,6 +1,23 @@
-# ai_cookbook
+# agent-toolkit
 
-`ai_cookbook` is a Python coding agent powered by LangGraph, NVIDIA Nemotron, local ChromaDB memory, and a 12-tool execution layer. The optional `ghost-companion/` application adds a local Pookie desktop companion with a FastAPI backend and Electron frontend.
+Local AI coding agent with 12 tools (files, code, web, memory, code search) and a desktop companion named Pookie.
+
+## Features
+
+| Tool | What it does |
+| --- | --- |
+| `read_file` | Reads a UTF-8 file inside `workspace/`. |
+| `write_file` | Creates or overwrites a file inside `workspace/`. |
+| `edit_file` | Replaces one exact occurrence in a workspace file. |
+| `list_files` | Lists files recursively in a workspace directory. |
+| `run_code` | Runs Python source code in a subprocess or restricted sandbox. |
+| `safe_shell` | Runs an allowlisted command without a shell. |
+| `web_search` | Searches the web with DuckDuckGo. |
+| `fetch_page` | Fetches visible page text with Playwright. |
+| `remember` | Stores a note in ChromaDB memory. |
+| `recall` | Retrieves related notes from ChromaDB. |
+| `index_code_file` | Parses and indexes Python functions and classes. |
+| `search_code` | Searches indexed code chunks. |
 
 ## Setup
 
@@ -10,22 +27,24 @@ pip install -r requirements.txt
 playwright install chromium
 ```
 
-Provide `NVIDIA_API_KEY` in the local environment. Keep `.env` untracked.
-
-## Tools
-
-The agent registers these tools in `tools.py`:
-
-`read_file`, `write_file`, `edit_file`, `list_files`, `run_code`, `safe_shell`, `web_search`, `fetch_page`, `remember`, `recall`, `index_code_file`, and `search_code`.
+Create a local `.env` file with the `NVIDIA_API_KEY` setting. Keep it untracked and never commit its value.
 
 ## Run
 
+Start the backend in one terminal:
+
 ```bash
-python main.py --list-tools
-python main.py "Fibonacci function likho with tests"
+cd ghost-companion/backend
+uvicorn api:app --reload --port 8000
 ```
 
-The companion backend can be started with `uvicorn api:app --reload` from `ghost-companion/backend/`. The Electron frontend is in `ghost-companion/frontend/`.
+Start the desktop companion in another terminal:
+
+```bash
+cd ghost-companion/frontend
+npm install
+npm run electron:dev
+```
 
 ## Tests
 
@@ -33,13 +52,34 @@ The companion backend can be started with `uvicorn api:app --reload` from `ghost
 python workspace/tool_tests/run_all_tests.py
 ```
 
-Expected result: **12/12 passed**. `fetch_page` needs network access and a Chromium installation. Memory and code-index tests need ChromaDB and its embedding model.
+Expected result: all 12 tests pass. `fetch_page` needs Chromium and network access; memory tests need the Chroma embedding model.
+
+## Demo
+
+![Pookie chat](docs/images/pookie-task.png)
+![palindrome.py](docs/images/task-palindrome-code.png)
+![test output](docs/images/task-palindrome-output.png)
 
 ## Test results
 
-![12/12 tool tests passing](docs/images/test-results.png)
+![tool tests passing](docs/images/test-results.png)
 
+> Note: the Pookie chat UI is experimental. The 12 tools are covered by `workspace/tool_tests`.
 
-## Example task
+## Project structure
 
-![Pookie running FizzBuzz](docs/images/task-fizzbuzz.png)
+```text
+.
+├── agent.py
+├── api.py
+├── tools.py
+├── memory.py
+├── run_code.py
+├── filesystem.py
+├── search.py
+├── prompts.py
+├── config.py
+├── ghost-companion/
+├── workspace/tool_tests/
+└── docs/
+```
