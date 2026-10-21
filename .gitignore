@@ -19,3 +19,4 @@ ghost-companion/frontend/eng.traineddata
 ghost-companion/backend/feedback_log.jsonl
 release/
 workspace/workspace/
+.vscode/
