@@ -5,12 +5,19 @@ from pathlib import Path
 from config import WORKSPACE
 
 
+def _strip_workspace_prefix(path: str) -> Path:
+    candidate = Path(path)
+    if not candidate.is_absolute() and candidate.parts and candidate.parts[0] == "workspace":
+        return Path(*candidate.parts[1:]) if len(candidate.parts) > 1 else Path(".")
+    return candidate
+
+
 def safe_path(path: str) -> Path:
     """
     Resolve path inside WORKSPACE only.
     Path escape attempts are blocked.
     """
-    full = (WORKSPACE / path).resolve()
+    full = (WORKSPACE / _strip_workspace_prefix(path)).resolve()
     if not str(full).startswith(str(WORKSPACE.resolve())):
         raise PermissionError(f"Path escape blocked: {path}")
     return full

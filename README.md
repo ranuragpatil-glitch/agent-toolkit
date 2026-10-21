@@ -52,7 +52,7 @@ npm run electron:dev
 python workspace/tool_tests/run_all_tests.py
 ```
 
-Expected result: all 12 tests pass. `fetch_page` needs Chromium and network access; memory tests need the Chroma embedding model.
+Expected result: all 13 tests pass. `fetch_page` needs Chromium and network access; memory tests need the Chroma embedding model.
 
 ## Demo
 

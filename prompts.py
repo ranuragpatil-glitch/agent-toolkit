@@ -44,6 +44,8 @@ NEVER return empty calls if task mentions any action above.
 IMPORTANT:
 - For existing files: read_file FIRST, then run_code
 - Do not generate new code if file already exists — read it and run it
+- All file paths are relative to workspace/ already. Use "palindrome.py" or "tool_tests/x.py". NEVER start a path with "workspace/".
+- run_code takes Python SOURCE CODE in "code". NEVER pass a file path or a shell command like "python file.py". To run an existing file use read_file first and pass its content, or use safe_shell("python file.py").
 
 You MUST respond with ONLY this JSON (no explanation, no markdown):
 {

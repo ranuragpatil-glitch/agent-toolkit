@@ -14,6 +14,7 @@ from config import (
     MEMORY_COLLECTION,
     MEMORY_DIR,
 )
+from utils import _strip_workspace_prefix
 
 
 def _require_chromadb() -> None:
@@ -69,7 +70,7 @@ else:
 
 def _resolve_code_path(filepath: str, project_root: str) -> Path:
     """Pehle workspace/ ke andar dhoondo (baaki tools jaisa), phir project root me."""
-    path = Path(filepath)
+    path = _strip_workspace_prefix(filepath)
     base = Path(project_root).resolve()
     if path.is_absolute():
         return path.resolve()

@@ -72,6 +72,8 @@ button { cursor: pointer; }
 .message-row-user .ghost-avatar { display: none; }
 .message-content { min-width: 0; }
 .message-bubble { white-space: pre-line; padding: 12px 14px; border: 1px solid #eee8f7; border-radius: 17px 17px 17px 5px; color: #50475c; background: #fff; font-size: 13px; line-height: 1.5; box-shadow: 0 4px 14px rgba(86, 61, 117, .05); }
+.message-code-block { max-width: 100%; margin: 10px 0 0; overflow-x: auto; padding: 10px 11px; border: 1px solid #e7def6; border-radius: 10px; color: #4a3b61; background: #f7f3fd; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; white-space: pre; }
+.message-code-block code { font: inherit; white-space: inherit; }
 .message-bubble-user { border: 0; border-radius: 17px 17px 5px 17px; color: #fff; background: #8064bd; box-shadow: 0 6px 17px rgba(111, 75, 172, .18); }
 .message-actions { display: flex; align-items: center; gap: 2px; min-height: 26px; padding: 3px 2px 0; opacity: 0; pointer-events: none; transform: translateY(-2px); transition: opacity .15s, transform .15s; }
 .message-row-boo:hover .message-actions, .message-row-boo:focus-within .message-actions { opacity: 1; pointer-events: auto; transform: translateY(0); }

@@ -15,6 +15,7 @@ TEST_NAMES = [
     "test_list_files.py",
     "test_run_code.py",
     "test_safe_shell.py",
+    "test_workspace_prefix.py",
     "test_web_search.py",
     "test_fetch_page.py",
     "test_remember.py",

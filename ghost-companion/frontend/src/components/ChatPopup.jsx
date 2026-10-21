@@ -25,6 +25,25 @@ function Icon({ name }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true">{paths[name]}</svg>;
 }
 
+function renderMessageText(text) {
+  return String(text || "").split("```").map((part, index) => {
+    if (index % 2 === 0) {
+      return <span key={`text-${index}`}>{part}</span>;
+    }
+
+    const hasLeadingNewline = part.startsWith("\n");
+    const lines = (hasLeadingNewline ? part.slice(1) : part).split("\n");
+    const hasLanguage = !hasLeadingNewline && lines.length > 1 && /^[\w+#-]+$/.test(lines[0].trim());
+    const code = (hasLanguage ? lines.slice(1) : lines).join("\n").replace(/\n$/, "");
+
+    return (
+      <pre className="message-code-block" key={`code-${index}`}>
+        <code>{code}</code>
+      </pre>
+    );
+  });
+}
+
 function MessageActions({ message, precedingUserMessage, feedback, copied, moreOpen, onCopy, onFeedback, onRegenerate, onToggleMore }) {
   return (
     <div className="message-actions" aria-label="Message actions">
@@ -67,7 +86,7 @@ function Message({ message, precedingUserMessage, feedback, copied, moreOpen, on
       {message.role !== "user" && <GhostAvatar mood={message.mood || "happy"} size="sm" />}
       <div className="message-content">
         <div className={`message-bubble ${message.role === "user" ? "message-bubble-user" : ""}`}>
-          {message.text}
+          {renderMessageText(message.text)}
         </div>
         {message.role !== "user" && (
           <MessageActions

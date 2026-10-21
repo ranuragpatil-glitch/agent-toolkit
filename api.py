@@ -59,8 +59,55 @@ def _short_error(message: str) -> str:
 
 def _format_nemotron_success(result: dict) -> str:
     """Extract useful output from Nemotron agent result."""
+    tool_results = result.get("tool_results") or []
     code = (result.get("code") or "").strip()
     tool_calls = result.get("tool_calls") or []
+
+    if tool_results:
+        summaries = []
+        for entry in tool_results:
+            tool_name = entry.get("tool") or "tool"
+            tool_result = entry.get("result") or {}
+            args = entry.get("args") or {}
+            path = tool_result.get("path") or args.get("path") or args.get("filepath")
+
+            if tool_name == "write_file" and tool_result.get("ok") and path:
+                summaries.append(f"Wrote {path}")
+            elif tool_name == "edit_file" and tool_result.get("ok") and path:
+                summaries.append(f"Updated {path}")
+            elif tool_name == "read_file" and tool_result.get("ok") and path:
+                summaries.append(f"Read {path}")
+            elif tool_name == "list_files" and tool_result.get("ok"):
+                summaries.append(f"Listed {len(tool_result.get('files') or [])} files")
+            elif tool_name in {"run_code", "safe_shell"}:
+                if tool_result.get("ok"):
+                    stdout = (tool_result.get("stdout") or "").strip()
+                    if stdout:
+                        tail = "\n".join(stdout.splitlines()[-6:])
+                        summaries.append(f"{tool_name} output:\n{tail}")
+                    else:
+                        summaries.append(f"{tool_name} completed successfully")
+                else:
+                    error = tool_result.get("error") or tool_result.get("stderr")
+                    if error:
+                        summaries.append(f"{tool_name} error: {_short_error(str(error))}")
+            elif tool_name == "web_search" and tool_result.get("ok"):
+                summaries.append(f"Web search returned {len(tool_result.get('results') or [])} results")
+            elif tool_name == "fetch_page" and tool_result.get("ok"):
+                summaries.append(f"Fetched {args.get('url', 'the requested page')}")
+            elif tool_name == "remember" and tool_result.get("ok"):
+                summaries.append(f"Saved memory note {tool_result.get('id', '')}".rstrip())
+            elif tool_name == "recall" and tool_result.get("ok"):
+                summaries.append(f"Recalled {len(tool_result.get('results') or [])} notes")
+            elif tool_name == "index_code_file" and tool_result.get("ok"):
+                summaries.append(f"Indexed {tool_result.get('chunks_indexed', 0)} code chunks")
+            elif tool_name == "search_code" and tool_result.get("ok"):
+                summaries.append(f"Code search returned {len(tool_result.get('results') or [])} results")
+
+        if summaries:
+            reply = "Ho gaya! ✨\n\n" + "\n".join(f"• {summary}" for summary in summaries)
+            return reply[:1200] + ("…" if len(reply) > 1200 else "")
+        return "Ho gaya! ✨\n\nTool result mila, par koi compact output available nahi hai."
 
     if code:
         preview = code
